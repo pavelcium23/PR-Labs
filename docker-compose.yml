@@ -1,0 +1,32 @@
+services:
+  http-server:
+    build: .
+    container_name: http_file_server
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./content:/app/content:ro
+    networks:
+      - http-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s = socket.socket(); s.connect(('localhost', 8080)); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  http-client:
+    build: .
+    container_name: http_client
+    volumes:
+      - ./downloads:/app/downloads
+      - ./content:/app/content:ro
+    networks:
+      - http-network
+    command: tail -f /dev/null  # Keep container running for manual client commands
+    depends_on:
+      - http-server
+
+networks:
+  http-network:
+    driver: bridge
