@@ -7,8 +7,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 import uvicorn
 
-from .board import Board
-from . import commands
+try:  # Allow running both as package module and standalone script
+    from .board import Board
+    from . import commands
+except ImportError:  # pragma: no cover - fallback for direct execution
+    from board import Board
+    import commands
 
 
 def create_app(board: Board) -> FastAPI:
