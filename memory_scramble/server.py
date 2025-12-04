@@ -7,7 +7,7 @@ from typing import Iterable
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 import uvicorn
 
 try:  # Allow running both as package module and standalone script
@@ -45,8 +45,8 @@ def create_app(board: Board) -> FastAPI:
         allow_headers=["*"],
     )
 
-    @app.get("/", response_class=FileResponse)
-    async def root() -> FileResponse:
+    @app.get("/", response_class=HTMLResponse)
+    async def root() -> HTMLResponse:
         index_path = find_index_file()
         if not index_path:
             searched = ", ".join(str(path / "index.html") for path in iter_public_dirs())
@@ -54,7 +54,7 @@ def create_app(board: Board) -> FastAPI:
                 status_code=404,
                 detail=f"index.html not found; looked in: {searched}",
             )
-        return FileResponse(index_path, media_type="text/html")
+        return HTMLResponse(index_path.read_text(encoding="utf-8"), media_type="text/html")
 
     @app.get("/favicon.ico", response_class=PlainTextResponse)
     async def favicon() -> PlainTextResponse:
