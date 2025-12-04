@@ -5,11 +5,29 @@ import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
+from fastapi.responses import FileResponse
 import uvicorn
+from pathlib import Path
+from typing import Iterable
 
-from .board import Board
-from . import commands
+from board import Board
+import commands
 
+
+def iter_public_dirs() -> Iterable[Path]:
+    """Yield possible locations for the bundled web UI."""
+    server_dir = Path(__file__).resolve().parent
+    yield server_dir.parent / "public"  # repository root/public
+    yield server_dir / "public"  # repo copied without top-level public
+    yield Path.cwd() / "public"  # running from arbitrary working dir
+
+
+def find_index_file() -> Path | None:
+    for directory in iter_public_dirs():
+        candidate = directory / "index.html"
+        if candidate.exists():
+            return candidate
+    return None
 
 def create_app(board: Board) -> FastAPI:
     """Create a FastAPI application that exposes the Memory Scramble API."""
@@ -61,6 +79,21 @@ def create_app(board: Board) -> FastAPI:
             return await commands.watch(board, player_id)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+    
+    @app.get("/")
+    async def root():
+        index_path = find_index_file()
+        if not index_path:
+            searched = ", ".join(str(path / "index.html") for path in iter_public_dirs())
+            raise HTTPException(
+                status_code=404,
+                detail=f"index.html not found; looked in: {searched}",
+            )
+        return FileResponse(index_path, media_type="text/html")
+
+    @app.get("/favicon.ico", response_class=PlainTextResponse)
+    async def favicon() -> PlainTextResponse:
+        return PlainTextResponse(status_code=204, content="")
 
     return app
 

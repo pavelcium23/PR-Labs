@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Awaitable, Callable
 
-from .board import Board
+from board import Board
 
 CardTransform = Callable[[str], Awaitable[str]]
 _PLAYER_ID_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
