@@ -3,3 +3,9 @@
 /package-lock.json
 /dist/
 /coverage/
+__pycache__/
+/.venv/
+/.mypy_cache/
+/.pytest_cache/
+*.pyc
+/memory_scramble.egg-info/
