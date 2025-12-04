@@ -3,14 +3,12 @@ from __future__ import annotations
 import argparse
 import asyncio
 from pathlib import Path
+from typing import Iterable
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, PlainTextResponse
 import uvicorn
-
-PUBLIC_DIR = Path(__file__).resolve().parent.parent / "public"
-
 
 try:  # Allow running both as package module and standalone script
     from .board import Board
@@ -18,6 +16,22 @@ try:  # Allow running both as package module and standalone script
 except ImportError:  # pragma: no cover - fallback for direct execution
     from board import Board
     import commands
+
+
+def iter_public_dirs() -> Iterable[Path]:
+    """Yield possible locations for the bundled web UI."""
+    server_dir = Path(__file__).resolve().parent
+    yield server_dir.parent / "public"  # repository root/public
+    yield server_dir / "public"  # repo copied without top-level public
+    yield Path.cwd() / "public"  # running from arbitrary working dir
+
+
+def find_index_file() -> Path | None:
+    for directory in iter_public_dirs():
+        candidate = directory / "index.html"
+        if candidate.exists():
+            return candidate
+    return None
 
 
 def create_app(board: Board) -> FastAPI:
@@ -33,9 +47,13 @@ def create_app(board: Board) -> FastAPI:
 
     @app.get("/", response_class=FileResponse)
     async def root() -> FileResponse:
-        index_path = PUBLIC_DIR / "index.html"
-        if not index_path.exists():
-            raise HTTPException(status_code=404, detail="index.html not found")
+        index_path = find_index_file()
+        if not index_path:
+            searched = ", ".join(str(path / "index.html") for path in iter_public_dirs())
+            raise HTTPException(
+                status_code=404,
+                detail=f"index.html not found; looked in: {searched}",
+            )
         return FileResponse(index_path, media_type="text/html")
 
     @app.get("/favicon.ico", response_class=PlainTextResponse)
