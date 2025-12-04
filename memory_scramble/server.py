@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 import uvicorn
+
+PUBLIC_DIR = Path(__file__).resolve().parent.parent / "public"
+
 
 try:  # Allow running both as package module and standalone script
     from .board import Board
@@ -26,9 +31,12 @@ def create_app(board: Board) -> FastAPI:
         allow_headers=["*"],
     )
 
-    @app.get("/", response_class=PlainTextResponse)
-    async def root() -> str:
-        return "Memory Scramble API — see /look/{player_id} etc."
+    @app.get("/", response_class=FileResponse)
+    async def root() -> FileResponse:
+        index_path = PUBLIC_DIR / "index.html"
+        if not index_path.exists():
+            raise HTTPException(status_code=404, detail="index.html not found")
+        return FileResponse(index_path, media_type="text/html")
 
     @app.get("/favicon.ico", response_class=PlainTextResponse)
     async def favicon() -> PlainTextResponse:
