@@ -26,6 +26,14 @@ def create_app(board: Board) -> FastAPI:
         allow_headers=["*"],
     )
 
+    @app.get("/", response_class=PlainTextResponse)
+    async def root() -> str:
+        return "Memory Scramble API — see /look/{player_id} etc."
+
+    @app.get("/favicon.ico", response_class=PlainTextResponse)
+    async def favicon() -> PlainTextResponse:
+        return PlainTextResponse(status_code=204, content="")
+
     @app.get("/look/{player_id}", response_class=PlainTextResponse)
     async def look_endpoint(player_id: str) -> str:
         try:
