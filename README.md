@@ -132,9 +132,9 @@ Together these tests act as executable documentation for both the gameplay loop 
 
 ## Results
 
-- End-to-end lab workflow now runs entirely in Python while satisfying the structural constraints of the original assignment.
-- Automated tests (`pytest`) validate Board semantics, ensuring flips, matching logic, and watch notifications behave per spec.
-- The HTTP API passes manual smoke tests using the provided frontend and command-line clients (`httpx`, `curl`).
+![alt text](MIT-6.102-ps4/imgs/11.png)
+
+
 
 ## Conclusion
 
