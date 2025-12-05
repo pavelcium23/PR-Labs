@@ -1,0 +1,114 @@
+version: "3.9"
+
+services:
+  leader:
+    build: .
+    container_name: kv-leader
+    depends_on:
+      follower1:
+        condition: service_healthy
+      follower2:
+        condition: service_healthy
+      follower3:
+        condition: service_healthy
+      follower4:
+        condition: service_healthy
+      follower5:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      ROLE: leader
+      NODE_ID: leader
+      HOST: 0.0.0.0
+      PORT: 8000
+      FOLLOWER_URLS: "http://follower1:8000,http://follower2:8000,http://follower3:8000,http://follower4:8000,http://follower5:8000"
+      WRITE_QUORUM: "${WRITE_QUORUM:-3}"
+      MIN_DELAY_MS: "${MIN_DELAY_MS:-0}"
+      MAX_DELAY_MS: "${MAX_DELAY_MS:-1000}"
+      REPLICATE_TIMEOUT_SECONDS: "${REPLICATE_TIMEOUT_SECONDS:-5}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+
+  follower1:
+    build: .
+    container_name: kv-follower1
+    ports:
+      - "8101:8000"
+    environment:
+      ROLE: follower
+      NODE_ID: follower1
+      HOST: 0.0.0.0
+      PORT: 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+
+  follower2:
+    build: .
+    container_name: kv-follower2
+    ports:
+      - "8102:8000"
+    environment:
+      ROLE: follower
+      NODE_ID: follower2
+      HOST: 0.0.0.0
+      PORT: 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+
+  follower3:
+    build: .
+    container_name: kv-follower3
+    ports:
+      - "8103:8000"
+    environment:
+      ROLE: follower
+      NODE_ID: follower3
+      HOST: 0.0.0.0
+      PORT: 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+
+  follower4:
+    build: .
+    container_name: kv-follower4
+    ports:
+      - "8104:8000"
+    environment:
+      ROLE: follower
+      NODE_ID: follower4
+      HOST: 0.0.0.0
+      PORT: 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+
+  follower5:
+    build: .
+    container_name: kv-follower5
+    ports:
+      - "8105:8000"
+    environment:
+      ROLE: follower
+      NODE_ID: follower5
+      HOST: 0.0.0.0
+      PORT: 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 5

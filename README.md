@@ -139,3 +139,25 @@ Together these tests act as executable documentation for both the gameplay loop 
 ## Conclusion
 
 We successfully ported the MIT Memory Scramble lab to Python without changing its architectural contract. The Board ADT, command protocol, and HTTP façade retain their original responsibilities, enabling students to reason about representation invariants, modular design, and API layering while working in a familiar Python environment.
+
+## Distributed Key-Value Store
+
+### Architecture Overview
+- A FastAPI-based leader node (`ROLE=leader`) accepts all client writes via `POST /kv/{key}` and serves reads via `GET /kv/{key}` and `GET /dump`.
+- Five follower nodes (`ROLE=follower`) expose the same read APIs plus a private `POST /replicate` endpoint that the leader calls to apply writes.
+- Semi-synchronous replication: the leader persists a write locally, launches concurrent replication RPCs (each delayed by a random value between `MIN_DELAY_MS` and `MAX_DELAY_MS`), and only responds after at least `WRITE_QUORUM` followers acknowledge. Remaining followers continue replicating in the background.
+- Every record carries a monotonically increasing version so followers can ignore stale updates, and `GET /dump` exposes the full store to validate replica state.
+
+### Docker Compose Deployment
+- Build and run the six-container topology with `docker compose up --build`. The compose file wires one leader plus five followers, exposes the leader on `localhost:8000`, and publishes each follower on `8101-8105`.
+- Tuning knobs are injected through environment variables declared in `docker-compose.yml`; override them at runtime (e.g., `WRITE_QUORUM=4 docker compose up`) to explore different replication guarantees without editing source.
+- Health checks (simple `/health` probes) gate the leader startup so it only begins serving once all followers are reachable.
+
+### Integration Test
+- The harness in `kvstore/harness.py` spins up real uvicorn instances in-process, so `pytest` exercises the full HTTP+replication stack.
+- Run `pytest` (or `~/.local/bin/pytest` if the user bin directory is not on `PATH`) to verify that writes replicate to every follower and that the leader rejects a write whenever the configured quorum cannot be satisfied.
+
+### Performance & Consistency Study
+- `python3 scripts/analyze_quorum_latency.py` (matplotlib required via `pip install -e .[dev]`) runs 100 concurrent writes (10 at a time) for quorum sizes 1‑5, saves raw metrics to `analysis/quorum_latency_results.json`, and plots the average latency curve at `imgs/quorum_vs_latency.png`.
+- Observed average latencies (ms): 1→196.9, 2→305.1, 3→514.0, 4→684.5, 5→859.7. Higher quorums increase the time spent waiting for the slowest required follower and amplify the impact of the injected random network delay, so the curve is roughly linear with a steeper slope beyond quorum=3.
+- After each run the script waits for outstanding replication RPCs, then compares every follower snapshot against the leader. All scenarios finished with `consistent: true`, demonstrating that even when the leader responds early, background replication still converges all five replicas to the same state.

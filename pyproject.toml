@@ -11,6 +11,7 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.111,<0.115",
     "uvicorn>=0.30,<0.31",
+    "httpx>=0.27,<0.28",
 ]
 
 [project.optional-dependencies]
@@ -18,10 +19,11 @@ dev = [
     "httpx>=0.27",
     "pytest>=8.3",
     "pytest-asyncio>=0.23",
+    "matplotlib>=3.9",
 ]
 
 [tool.setuptools]
-packages = ["memory_scramble"]
+packages = ["memory_scramble", "kvstore"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

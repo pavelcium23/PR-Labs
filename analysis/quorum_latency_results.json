@@ -1,0 +1,37 @@
+[
+  {
+    "write_quorum": 1,
+    "average_latency_ms": 196.895787185058,
+    "max_latency_ms": 786.1893018707633,
+    "min_latency_ms": 4.87111508846283,
+    "consistent": true
+  },
+  {
+    "write_quorum": 2,
+    "average_latency_ms": 305.120950890705,
+    "max_latency_ms": 723.7101690843701,
+    "min_latency_ms": 15.626105479896069,
+    "consistent": true
+  },
+  {
+    "write_quorum": 3,
+    "average_latency_ms": 513.9638894144446,
+    "max_latency_ms": 932.0661257952452,
+    "min_latency_ms": 124.38488099724054,
+    "consistent": true
+  },
+  {
+    "write_quorum": 4,
+    "average_latency_ms": 684.4950838200748,
+    "max_latency_ms": 989.6783782169223,
+    "min_latency_ms": 267.0957539230585,
+    "consistent": true
+  },
+  {
+    "write_quorum": 5,
+    "average_latency_ms": 859.6810003276914,
+    "max_latency_ms": 1030.6830639019608,
+    "min_latency_ms": 329.8998763784766,
+    "consistent": true
+  }
+]
