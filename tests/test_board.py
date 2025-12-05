@@ -65,3 +65,37 @@ async def test_watch_reports_changes() -> None:
     await board.flip("carol", 0, 0)
     updated = await asyncio.wait_for(task, timeout=1.0)
     assert "my A" in updated
+
+
+@pytest.mark.asyncio
+async def test_flip_same_card_twice_disallowed() -> None:
+    board = Board([["A", "B"]])
+    await board.flip("dana", 0, 0)
+    with pytest.raises(ValueError, match="player already controls this card"):
+        await board.flip("dana", 0, 0)
+
+
+@pytest.mark.asyncio
+async def test_flip_removed_card_rejected() -> None:
+    board = Board([["A", "A"]])
+    await board.flip("erin", 0, 0)
+    await board.flip("erin", 0, 1)
+    await asyncio.sleep(MATCH_CLEAR_DELAY_SECONDS + 0.1)
+    with pytest.raises(ValueError, match="already been removed"):
+        await board.flip("erin", 0, 0)
+
+
+@pytest.mark.asyncio
+async def test_player_waits_before_third_flip() -> None:
+    board = Board([["A", "B", "C"]])
+    await board.flip("frank", 0, 0)
+    await board.flip("frank", 0, 1)
+
+    third_flip = asyncio.create_task(board.flip("frank", 0, 2))
+    await asyncio.sleep(0.1)
+    assert not third_flip.done()
+
+    await asyncio.sleep(MISMATCH_HIDE_DELAY_SECONDS + 0.1)
+    assert third_flip.done()
+    state = await third_flip
+    assert "my C" in state
