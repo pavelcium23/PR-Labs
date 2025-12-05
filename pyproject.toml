@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "memory-scramble"
+version = "0.1.0"
+description = "Python backend for the MIT Memory Scramble lab"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.111,<0.115",
+    "uvicorn>=0.30,<0.31",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx>=0.27",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.23",
+]
+
+[tool.setuptools]
+packages = ["memory_scramble"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
